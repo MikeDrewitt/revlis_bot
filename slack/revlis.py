@@ -41,20 +41,23 @@ def slack_commands_list(command, channel):
 def parse_slack_output(slack_rtm_output):
     """
         The Slack Real Time Messaging API is an events firehose.
-        this parsing function returns None unless a message is
-        directed at the Bot, based on its ID.
+        this parsing function returns None if there is no messages being sent,
+        returns true, the chat message, the channel, and the user if the message
+        was directed at the bot, and false with the rest of the return values if it
+        is just a message.
     """
     output_list = slack_rtm_output
     if output_list and len(output_list) > 0:
         for output in output_list:
             if output and 'text' in output and AT_BOT in output['text']:
                 # return text after the @ mention, whitespace removed
-                return output['text'].split(AT_BOT)[1].strip().lower(), \
-                       output['channel']
-            if output and 'text' in output:
-                print (output['text'])
+                return True, output['text'].split(AT_BOT)[1].strip().lower(), \
+                       output['channel'], output['user']
+            if output and 'text' in output: 
+               # return text with no @ mention of the bot
+               return False, output['text'].lower(), output['channel'], output['user']
 
-    return None, None
+    return None, None, None, None
 
 if __name__ == "__main__":
     READ_WEBSOCKET_DELAY = 1 # 1 second delay between reading from firehose
@@ -63,9 +66,14 @@ if __name__ == "__main__":
 
         while True:
 
-            command, channel = parse_slack_output(slack_client.rtm_read())
+            at_bot, command, channel, user = parse_slack_output(slack_client.rtm_read())
             if command and channel:
-                slack_commands_list(command, channel)
+                if at_bot:
+                    slack_commands_list(command, channel)
+               
+                else:
+                    print ('command: ' + command + ', user: ' + user)
+
             time.sleep(READ_WEBSOCKET_DELAY)
     else:
         print("Connection failed. Invalid Slack token or bot ID?")
