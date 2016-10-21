@@ -61,6 +61,40 @@ def parse_slack_output(slack_rtm_output):
 
     return None, None
 
+def get_bot_channels(slack_client, bot_id):
+            
+    channel_list = slack_client.api_call('channels.list')
+    group_list = slack_client.api_call('groups.list')
+        
+    #print(slack_client.api_call('channels.info', channel="C0VN9R41F"))
+
+    for channel in channel_list['channels']:
+        channel_id = channel['id']
+      
+        channel_info = slack_client.api_call('channels.info', channel=channel_id)         
+
+        print(channel_info)
+                
+        if channel_info['ok'] == True:
+            for g in channel_info['channel']:
+                print(g)
+                        
+                #if BOT_ID in g['members']:
+                #print('found him!')
+
+
+    for group in group_list['groups']:
+        group_id = group['id']
+        group_info = slack_client.api_call('groups.info', channel=group_id)
+             
+        print(group_info)
+                
+        if group_info['ok'] == True:
+            for g in group_info['group']:
+                print(g)                
+
+
+
 if __name__ == "__main__":
     READ_WEBSOCKET_DELAY = 1 # 1 second delay between reading from firehose
     if slack_client.rtm_connect():
@@ -70,39 +104,6 @@ if __name__ == "__main__":
 
             at_bot, chat_dictionary = parse_slack_output(slack_client.rtm_read())
 
-
-            channel_list = slack_client.api_call('channels.list')
-            group_list = slack_client.api_call('groups.list')
-        
-            #print(slack_client.api_call('channels.info', channel="C0VN9R41F"))
-
-            for channel in channel_list['channels']:
-                channel_id = channel['id']
-                
-                channel_info = slack_client.api_call('channels.info', channel=channel_id)         
-
-                print(channel_info)
-                
-                if channel_info['ok'] == True:
-                    for g in channel_info['channel']:
-                        
-                        print(g)
-                        
-                        #if BOT_ID in g['members']:
-                        #    print('found him!')
-
-
-            for group in group_list['groups']:
-                group_id = group['id']
-                group_info = slack_client.api_call('groups.info', channel=group_id)
-             
-                print(group_info)
-                
-                if group_info['ok'] == True:
-                    for g in group_info['group']:
-                        if BOT_ID in g['members']:
-                            print('found him!')
-                
 
             if at_bot != None:
                 channel = chat_dictionary['channel']
