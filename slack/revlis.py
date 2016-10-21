@@ -17,10 +17,11 @@ BOT_ID = 'U2D8VMVQS'
 # constants
 AT_BOT = "<@" + BOT_ID + ">"
 
-'''
-    Helper fucntion to determain whether or not a string is a number.
-'''
+
 def is_int(val):
+    '''
+        Helper fucntion to determain whether or not a string is a number.
+    '''
     try:
         if val.isdigit():
             #print("Val is true: " + val)
