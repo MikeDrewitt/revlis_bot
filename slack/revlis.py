@@ -51,14 +51,15 @@ def parse_slack_output(slack_rtm_output):
     if output_list and len(output_list) > 0:
         for output in output_list:
             if output and 'text' in output and AT_BOT in output['text']:
-                # return text after the @ mention, whitespace removed
-                return True, output['text'].split(AT_BOT)[1].strip().lower(), \
-                       output['channel'], output['user']
-            if output and 'text' in output: 
-               # return text with no @ mention of the bot
-               return False, output['text'].lower(), output['channel'], output['user']
+                # return true, and all data info after     
+               output['text'] = output['text'].split(AT_BOT)[1].strip().lower()
+               return True, output
 
-    return None, None, None, None
+            if output and 'text' in output: 
+               # return false and all data info
+               return False, output
+
+    return None, None
 
 if __name__ == "__main__":
     READ_WEBSOCKET_DELAY = 1 # 1 second delay between reading from firehose
@@ -67,13 +68,12 @@ if __name__ == "__main__":
 
         while True:
 
-            at_bot, command, channel, user = parse_slack_output(slack_client.rtm_read())
-            if command and channel:
-                if at_bot:
-                    slack_commands_list(command, channel)
-               
-                else:
-                    print ('command: ' + command + ', user: ' + user)
+            at_bot, chat_dictionary = parse_slack_output(slack_client.rtm_read())
+
+            if at_bot != None:
+                print('working')
+            else:
+                print('yup')
 
             time.sleep(READ_WEBSOCKET_DELAY)
     else:
