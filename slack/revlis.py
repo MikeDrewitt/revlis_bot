@@ -70,10 +70,31 @@ if __name__ == "__main__":
 
             at_bot, chat_dictionary = parse_slack_output(slack_client.rtm_read())
 
+
+            channel_list = slack_client.api_call('channels.list')
+            group_list = slack_client.api_call('groups.list')
+        
+            #print(group_list)
+
+            for channel in channel_list['channels']:
+                print(channel['name'])
+                #print(slack_client.api_call('channels.info', channel=channel['name']))         
+
+            for channel in group_list['groups']:
+                print(channel['name'])
+                #if BOT_ID in slack_client.api_call('channels.info', channel=channel['name']):
+                #    print(BOT_ID)
+
             if at_bot != None:
-                print('working')
+                channel = chat_dictionary['channel']
+                command = chat_dictionary['text']
+  
+                if at_bot:  
+                    slack_commands_list(command, channel)
+                else:          
+                    print(command) 
             else:
-                print('yup')
+                a = 1 
 
             time.sleep(READ_WEBSOCKET_DELAY)
     else:
