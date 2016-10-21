@@ -69,12 +69,17 @@ def get_bot_channels(slack_client, bot_id):
     return bot_channels
 
 def slack_commands_list(command, channel):
+    global CHANNEL_ARRAY
+
     response = "Not sure what you mean. Try again later."
 
     #This is going to hold the room by updating the json object at paramerterized time and day
     if command.startswith("refresh"):
         CHANNEL_ARRAY = get_bot_channels(SLACK_CLIENT, BOT_ID)
         SLACK_CLIENT.api_call("chat.postMessage", channel=channel, text="Channel list has been refreshed!", as_user=True)
+    if command.startswith('test'):
+        CHANNEL_ARRAY = ['new_array', 'woooooo']
+        SLACK_CLIENT.api_call("chat.postMessage", channel=channel, text="testing stuff", as_user=True)
     else:
         SLACK_CLIENT.api_call("chat.postMessage", channel=channel, text="No command found.", as_user=True)
 
@@ -121,9 +126,12 @@ if __name__ == "__main__":
                 if at_bot:
                     slack_commands_list(command, channel)
                 else:
-                    print(command)
+                    if channel in CHANNEL_ARRAY:
+                        print(command)
             else:
                 a = 1
+
+            print(CHANNEL_ARRAY)
 
             time.sleep(READ_WEBSOCKET_DELAY)
     else:
