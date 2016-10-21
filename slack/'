@@ -86,7 +86,7 @@ if __name__ == "__main__":
                 if channel_info['ok'] == True:
                     for g in channel_info['channel']:
                         
-                        print(g)
+                        print(g['members'])
                         
                         #if BOT_ID in g['members']:
                         #    print('found him!')
