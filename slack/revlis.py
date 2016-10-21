@@ -11,7 +11,7 @@ from pprint import pprint
 BOT_NAME = 'silver'
 DATABASE = '../db/db.json'
 
-slack_client = SlackClient('xoxb-81301743842-gdwmW92U9o4YLCkWlloqyK9i')
+slack_client = SlackClient('xoxp-23584478294-23583487255-94654266630-563d319952ec7a47e0d8b25b38d534de')
 BOT_ID = 'U2D8VMVQS'
 
 # constants
