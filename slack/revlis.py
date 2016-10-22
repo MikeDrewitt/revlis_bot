@@ -30,7 +30,7 @@ def is_int(val):
         #print("Val is false: " + val)
         return False
 
-def get_bot_channels(bot_id):
+def get_channels(bot_id):
     channel_list = SLACK_CLIENT.api_call('channels.list')
     group_list = SLACK_CLIENT.api_call('groups.list')
 
@@ -125,9 +125,12 @@ def slack_commands_list(command, channel):
     response = "Not sure what you mean. Try again later."
 
     #This is going to hold the room by updating the json object at paramerterized time and day
-    if command.startswith("refresh"):
-        CHANNEL_ARRAY = get_bot_channels(BOT_ID)
+    if command.startswith('refresh'):
+        CHANNEL_ARRAY = get_channels(BOT_ID)
         SLACK_CLIENT.api_call("chat.postMessage", channel=channel, text="Channel list has been refreshed!", as_user=True)
+    elif command.startswith('kick'):
+         # TODO kick function taking in a user name and channel
+         print('kicking someon')
     elif command.startswith('test'):
         SLACK_CLIENT.api_call("chat.postMessage", channel=channel, text="testing stuff", as_user=True)
     else:
@@ -161,7 +164,7 @@ if __name__ == "__main__":
     if SLACK_CLIENT.rtm_connect():
         print("Silver connected and running!")
 
-        CHANNEL_ARRAY = get_bot_channels(BOT_ID)
+        CHANNEL_ARRAY = get_channels(BOT_ID)
 
         print(CHANNEL_ARRAY)
 
