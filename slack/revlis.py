@@ -8,7 +8,7 @@ import datetime
 from slackclient import SlackClient
 from pprint import pprint
 
-BOT_NAME = 'silver'
+BOT_NAME = 'revlis'
 
 CHANNEL_ARRAY = []
 CHANNEL_MAP = {}
