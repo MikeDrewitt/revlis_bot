@@ -106,6 +106,7 @@ def filter_all(message_stats):
             if user in user_map:
                 if user_map[user] == message:
                     #print('delete message at ts')
+                    message_count -= 1
                     delete_message(channel, ts)
                 else:
                     user_map[user] = message
