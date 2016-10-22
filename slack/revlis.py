@@ -11,6 +11,7 @@ from pprint import pprint
 BOT_NAME = 'silver'
 
 CHANNEL_ARRAY = []
+CHANNEL_MAP = {}
 
 SLACK_CLIENT = SlackClient('xoxp-23584478294-23583487255-94654266630-563d319952ec7a47e0d8b25b38d534de')
 BOT_ID = 'U2D8VMVQS'
@@ -29,21 +30,20 @@ def is_int(val):
         #print("Val is false: " + val)
         return False
 
-def get_bot_channels(slack_client, bot_id):
-
-    channel_list = slack_client.api_call('channels.list')
-    group_list = slack_client.api_call('groups.list')
+def get_bot_channels(bot_id):
+    channel_list = SLACK_CLIENT.api_call('channels.list')
+    group_list = SLACK_CLIENT.api_call('groups.list')
 
     bot_channels = []
 
-    #print(slack_client.api_call('channels.info', channel="C0VN9R41F"))
+    #print(SLACK_CLIENT.api_call('channels.info', channel="C0VN9R41F"))
 
     for channel in channel_list['channels']:
 
         if not channel['is_archived']:
             channel_id = channel['id']
 
-            channel_info = slack_client.api_call('channels.info', channel=channel_id)
+            channel_info = SLACK_CLIENT.api_call('channels.info', channel=channel_id)
 
             #print(channel_info)
 
@@ -57,7 +57,7 @@ def get_bot_channels(slack_client, bot_id):
 
         if not group['is_archived']:
             group_id = group['id']
-            group_info = slack_client.api_call('groups.info', channel=group_id)
+            group_info = SLACK_CLIENT.api_call('groups.info', channel=group_id)
 
             #print(group_info)
 
@@ -68,6 +68,56 @@ def get_bot_channels(slack_client, bot_id):
 
     return bot_channels
 
+def delete_message(channel, ts):
+    SLACK_CLIENT.api_call('chat.delete', ts=ts, channel=channel)
+
+def filter_all(message_stats):
+    global CHANNEL_MAP
+
+    if not 'user' in message_stats:
+        return
+
+    channel = message_stats['channel']
+    ts = message_stats['ts']
+    message = message_stats['text']
+    user = message_stats['user']
+
+    if channel in CHANNEL_MAP:
+
+        #print(channel)
+
+        gif_count, message_count, user_map = CHANNEL_MAP[channel]
+
+        if '/giphy' in message:
+            if gif_count > 2:
+                #print('delete message at ts')
+                delete_message(channel, ts)
+            else:
+                gif_count += 1
+                CHANNEL_MAP[channel] = gif_count, message_count, user_map
+        else:
+            if message_count > 6:
+                gif_count = 0
+                message_count = 0
+                CHANNEL_MAP[channel] = gif_count, message_count, user_map
+            else:
+                message_count += 1
+                CHANNEL_MAP[channel] = gif_count, message_count, user_map
+            if user in user_map:
+                if user_map[user] == message:
+                    #print('delete message at ts')
+                    delete_message(channel, ts)
+                else:
+                    user_map[user] = message
+            else:
+                user_map[user] = message
+                CHANNEL_MAP[channel] = gif_count, message_count, user_map
+        #print(CHANNEL_MAP)
+    else:
+        CHANNEL_MAP[channel] = 0, 0, {}
+        #print(CHANNEL_MAP)
+
+
 def slack_commands_list(command, channel):
     global CHANNEL_ARRAY
 
@@ -75,10 +125,9 @@ def slack_commands_list(command, channel):
 
     #This is going to hold the room by updating the json object at paramerterized time and day
     if command.startswith("refresh"):
-        CHANNEL_ARRAY = get_bot_channels(SLACK_CLIENT, BOT_ID)
+        CHANNEL_ARRAY = get_bot_channels(BOT_ID)
         SLACK_CLIENT.api_call("chat.postMessage", channel=channel, text="Channel list has been refreshed!", as_user=True)
-    if command.startswith('test'):
-        CHANNEL_ARRAY = ['new_array', 'woooooo']
+    elif command.startswith('test'):
         SLACK_CLIENT.api_call("chat.postMessage", channel=channel, text="testing stuff", as_user=True)
     else:
         SLACK_CLIENT.api_call("chat.postMessage", channel=channel, text="No command found.", as_user=True)
@@ -111,27 +160,32 @@ if __name__ == "__main__":
     if SLACK_CLIENT.rtm_connect():
         print("Silver connected and running!")
 
-        CHANNEL_ARRAY = get_bot_channels(SLACK_CLIENT, BOT_ID)
+        CHANNEL_ARRAY = get_bot_channels(BOT_ID)
 
         print(CHANNEL_ARRAY)
-  
+
         while True:
 
-            at_bot, chat_dictionary = parse_slack_output(SLACK_CLIENT.rtm_read())
-            
+            at_bot, message_stats = parse_slack_output(SLACK_CLIENT.rtm_read())
+
             if at_bot != None:
-                channel = chat_dictionary['channel']
-                command = chat_dictionary['text']
+                channel = message_stats['channel']
+                command = message_stats['text']
+                #user = message_stats['user']
+                #ts = message_stats['ts']
 
                 if at_bot:
                     slack_commands_list(command, channel)
                 else:
                     if channel in CHANNEL_ARRAY:
-                        print(command)
+                        # print(command, channel, user, ts)
+                        filter_all(message_stats)
+
+
             else:
                 a = 1
 
-            print(CHANNEL_ARRAY)
+            # print(CHANNEL_ARRAY)
 
             time.sleep(READ_WEBSOCKET_DELAY)
     else:
