@@ -1,0 +1,6 @@
+{
+    "sudoers": {
+        "members": ["one", "two"]
+    }
+
+}

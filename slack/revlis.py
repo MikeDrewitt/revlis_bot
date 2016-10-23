@@ -17,6 +17,7 @@ SLACK_CLIENT = SlackClient('xoxp-23584478294-23583487255-94654266630-563d319952e
 BOT_ID = 'U2D8VMVQS'
 AT_BOT = "<@" + BOT_ID + ">"
 
+CONFIG = 'config.json'
 
 def is_int(val):
     '''
@@ -29,6 +30,17 @@ def is_int(val):
     except AttributeError:
         #print("Val is false: " + val)
         return False
+
+def is_sudo(user):
+    
+    with open(CONFIG, 'r') as config_file:
+        config_json = json.load(config_file)
+
+        for sudoer in config_json['sudoers']['members']:
+            if user == sudoer:
+                return True
+            else:
+                return False
 
 def get_channels(bot_id):
     channel_list = SLACK_CLIENT.api_call('channels.list')
@@ -183,6 +195,8 @@ if __name__ == "__main__":
         while True:
 
             at_bot, message_stats = parse_slack_output(SLACK_CLIENT.rtm_read())
+
+            is_sudo('someone')
 
             if at_bot != None:
                 
