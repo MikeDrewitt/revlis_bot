@@ -118,6 +118,17 @@ def filter_all(message_stats):
         CHANNEL_MAP[channel] = 0, 0, {}
         #print(CHANNEL_MAP)
 
+def kick_user(channel, command):
+
+    try:
+        user = command.split('@')[1][:-1].upper()
+    except IndexError:
+        #print('wrong format')
+        SLACK_CLIENT.api_call()
+        return
+
+    #print(user)
+    SLACK_CLIENT.api_call('groups.kick', channel=channel, user=user)
 
 def slack_commands_list(command, channel):
     global CHANNEL_ARRAY
@@ -131,6 +142,7 @@ def slack_commands_list(command, channel):
     elif command.startswith('kick'):
          # TODO kick function taking in a user name and channel
          print('kicking someon')
+         kick_user(channel, command)
     elif command.startswith('test'):
         SLACK_CLIENT.api_call("chat.postMessage", channel=channel, text="testing stuff", as_user=True)
     else:
@@ -173,6 +185,7 @@ if __name__ == "__main__":
             at_bot, message_stats = parse_slack_output(SLACK_CLIENT.rtm_read())
 
             if at_bot != None:
+                
                 channel = message_stats['channel']
                 command = message_stats['text']
                 #user = message_stats['user']
