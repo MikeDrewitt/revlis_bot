@@ -36,7 +36,7 @@ def is_sudoer(user):
         config_json = json.load(config_file)
 
         for sudoer in config_json['sudoers']['members']:
-            print(sudoer)
+            #print(sudoer)
             if user == sudoer:
                 return True
         return False   
@@ -153,28 +153,21 @@ def kick_user(channel, command):
 def slack_commands_list(command, channel, user):
     global CHANNEL_ARRAY
 
-    response = "Not sure what you mean. Try again later."
-
-    if command.startswith('sudo'):
+    if command.startswith('sudo ') and is_sudoer(user):
+        sudo_command = command.split(' ', 1)[1] 
+        #print(sudo_command)
     
-        command.split('', 1)
-        
-        sudo_comand = command[1]
-        
-        if command.startswith('kick'):
-        
-            print('kicking someon')
-            kick_user(channel, command)
-
-
-    #This is going to hold the room by updating the json object at paramerterized time and day
-    if command.startswith('refresh'):
+        if sudo_command.startswith('kick '):
+            #print('kicking someone')
+            kick_user(channel, command) 
+    
+    elif command.startswith('sudo') and not is_sudoer(user):
+        SLACK_CLIENT.api_call("chat.postMessage", channel=channel, text="You don't have root!", username=BOT_NAME)
+    elif command.startswith('refresh'):
         CHANNEL_ARRAY = get_channels(BOT_ID)
-        SLACK_CLIENT.api_call("chat.postMessage", channel=channel, text="Channel list has been refreshed!", as_user=True) 
-    elif command.startswith('test'):
-        SLACK_CLIENT.api_call("chat.postMessage", channel=channel, text="testing stuff", as_user=True)
+        SLACK_CLIENT.api_call("chat.postMessage", channel=channel, text="Channel list has been refreshed!", username=BOT_NAME) 
     else:
-        SLACK_CLIENT.api_call("chat.postMessage", channel=channel, text="No command found.", as_user=True)
+        SLACK_CLIENT.api_call("chat.postMessage", channel=channel, text="No command found.", username=BOT_NAME)
 
 def parse_slack_output(slack_rtm_output):
     """
@@ -211,7 +204,6 @@ if __name__ == "__main__":
         while True:
 
             at_bot, message_stats = parse_slack_output(SLACK_CLIENT.rtm_read())
-
 
             if at_bot != None and 'user' in message_stats:
                 
