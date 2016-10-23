@@ -50,6 +50,9 @@ def add_sudoer(user):
         config_file.seek(0)
         json.dump(config_json, config_file, indent=4)
 
+    SLACK_CLIENT.api_call("chat.postMessage", channel=channel, text='<@'+user+'> has been added to sudoers.', username=BOT_NAME)
+
+
 def get_channels(bot_id):
     channel_list = SLACK_CLIENT.api_call('channels.list')
     group_list = SLACK_CLIENT.api_call('groups.list')
@@ -138,15 +141,15 @@ def filter_all(message_stats):
         CHANNEL_MAP[channel] = 0, 0, {}
         #print(CHANNEL_MAP)
 
-def kick_user(channel, command):
-
+def get_user_from_command(command):
     try:
         user = command.split('@')[1][:-1].upper()
+        return user
     except IndexError:
         #print('wrong format')
-        SLACK_CLIENT.api_call()
-        return
+        return 
 
+def kick_user(channel, user):
     #print(user)
     SLACK_CLIENT.api_call('groups.kick', channel=channel, user=user)
 
@@ -158,9 +161,13 @@ def slack_commands_list(command, channel, user):
         #print(sudo_command)
     
         if sudo_command.startswith('kick '):
-            #print('kicking someone')
-            kick_user(channel, command) 
-    
+            user = get_user_from_command(command)
+            kick_user(channel, user) 
+
+        if sudo_command.startswith('upgrade '):
+            user = get_user_from_command(command)
+            add_sudoer(user)
+
     elif command.startswith('sudo') and not is_sudoer(user):
         SLACK_CLIENT.api_call("chat.postMessage", channel=channel, text="You don't have root!", username=BOT_NAME)
     elif command.startswith('refresh'):
