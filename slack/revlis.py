@@ -31,16 +31,24 @@ def is_int(val):
         #print("Val is false: " + val)
         return False
 
-def is_sudo(user):
-    
+def is_sudoer(user): 
     with open(CONFIG, 'r') as config_file:
         config_json = json.load(config_file)
 
         for sudoer in config_json['sudoers']['members']:
+            print(sudoer)
             if user == sudoer:
                 return True
-            else:
-                return False
+        return False   
+
+def add_sudoer(user):
+    with open(CONFIG, 'r+') as config_file:
+        config_json = json.load(config_file)
+
+        config_json['sudoers']['members'].append(user)
+
+        config_file.seek(0)
+        json.dump(config_json, config_file, indent=4)
 
 def get_channels(bot_id):
     channel_list = SLACK_CLIENT.api_call('channels.list')
@@ -142,19 +150,27 @@ def kick_user(channel, command):
     #print(user)
     SLACK_CLIENT.api_call('groups.kick', channel=channel, user=user)
 
-def slack_commands_list(command, channel):
+def slack_commands_list(command, channel, user):
     global CHANNEL_ARRAY
 
     response = "Not sure what you mean. Try again later."
 
+    if command.startswith('sudo'):
+    
+        command.split('', 1)
+        
+        sudo_comand = command[1]
+        
+        if command.startswith('kick'):
+        
+            print('kicking someon')
+            kick_user(channel, command)
+
+
     #This is going to hold the room by updating the json object at paramerterized time and day
     if command.startswith('refresh'):
         CHANNEL_ARRAY = get_channels(BOT_ID)
-        SLACK_CLIENT.api_call("chat.postMessage", channel=channel, text="Channel list has been refreshed!", as_user=True)
-    elif command.startswith('kick'):
-         # TODO kick function taking in a user name and channel
-         print('kicking someon')
-         kick_user(channel, command)
+        SLACK_CLIENT.api_call("chat.postMessage", channel=channel, text="Channel list has been refreshed!", as_user=True) 
     elif command.startswith('test'):
         SLACK_CLIENT.api_call("chat.postMessage", channel=channel, text="testing stuff", as_user=True)
     else:
@@ -196,17 +212,16 @@ if __name__ == "__main__":
 
             at_bot, message_stats = parse_slack_output(SLACK_CLIENT.rtm_read())
 
-            is_sudo('someone')
 
-            if at_bot != None:
+            if at_bot != None and 'user' in message_stats:
                 
                 channel = message_stats['channel']
                 command = message_stats['text']
-                #user = message_stats['user']
-                #ts = message_stats['ts']
+                user = message_stats['user']
+                ts = message_stats['ts']
 
                 if at_bot:
-                    slack_commands_list(command, channel)
+                    slack_commands_list(command, channel, user)
                 else:
                     if channel in CHANNEL_ARRAY:
                         # print(command, channel, user, ts)
@@ -214,7 +229,7 @@ if __name__ == "__main__":
 
 
             else:
-                a = 1
+                None 
 
             # print(CHANNEL_ARRAY)
 
