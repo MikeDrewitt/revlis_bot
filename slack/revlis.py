@@ -31,7 +31,7 @@ def is_int(val):
         #print("Val is false: " + val)
         return False
 
-def is_sudoer(user): 
+def is_sudoer(user):
     with open(CONFIG, 'r') as config_file:
         config_json = json.load(config_file)
 
@@ -39,7 +39,7 @@ def is_sudoer(user):
             #print(sudoer)
             if user == sudoer:
                 return True
-        return False   
+        return False
 
 def add_sudoer(user):
     with open(CONFIG, 'r+') as config_file:
@@ -147,7 +147,7 @@ def get_user_from_command(command):
         return user
     except IndexError:
         #print('wrong format')
-        return 
+        return
 
 def kick_user(channel, user):
     #print(user)
@@ -157,12 +157,12 @@ def slack_commands_list(command, channel, user):
     global CHANNEL_ARRAY
 
     if command.startswith('sudo ') and is_sudoer(user):
-        sudo_command = command.split(' ', 1)[1] 
+        sudo_command = command.split(' ', 1)[1]
         #print(sudo_command)
-    
+
         if sudo_command.startswith('kick '):
             user = get_user_from_command(command)
-            kick_user(channel, user) 
+            kick_user(channel, user)
 
         if sudo_command.startswith('upgrade '):
             user = get_user_from_command(command)
@@ -172,7 +172,7 @@ def slack_commands_list(command, channel, user):
         SLACK_CLIENT.api_call("chat.postMessage", channel=channel, text="You don't have root!", username=BOT_NAME)
     elif command.startswith('refresh'):
         CHANNEL_ARRAY = get_channels(BOT_ID)
-        SLACK_CLIENT.api_call("chat.postMessage", channel=channel, text="Channel list has been refreshed!", username=BOT_NAME) 
+        SLACK_CLIENT.api_call("chat.postMessage", channel=channel, text="Channel list has been refreshed!", username=BOT_NAME)
     else:
         SLACK_CLIENT.api_call("chat.postMessage", channel=channel, text="No command found.", username=BOT_NAME)
 
@@ -213,7 +213,7 @@ if __name__ == "__main__":
             at_bot, message_stats = parse_slack_output(SLACK_CLIENT.rtm_read())
 
             if at_bot != None and 'user' in message_stats:
-                
+
                 channel = message_stats['channel']
                 command = message_stats['text']
                 user = message_stats['user']
@@ -228,7 +228,7 @@ if __name__ == "__main__":
 
 
             else:
-                None 
+                None
 
             # print(CHANNEL_ARRAY)
 
